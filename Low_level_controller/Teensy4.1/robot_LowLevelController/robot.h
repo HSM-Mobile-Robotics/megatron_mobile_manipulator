@@ -54,7 +54,7 @@ public:
     void OdometryInit(nav_msgs__msg__Odometry *odom_msg);
     void updateOdometryData();
     void motorsInit(RoboClaw *roboclaw, long baudrate);
-    void moveRobot(geometry_msgs__msg__Twist *cmdvel_msg, unsigned long *prev_cmd_time);
+    void moveRobot(geometry_msgs__msg__Twist *cmdvel_msg, unsigned long prev_cmd_time);
 
     void imuBNO055_init(Adafruit_BNO055* bno);
     void updateImuBNO055Data(Adafruit_BNO055* bno, sensor_msgs__msg__Imu* imuMsg);
