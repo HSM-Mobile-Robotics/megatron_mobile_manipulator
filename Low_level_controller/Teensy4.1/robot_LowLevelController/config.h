@@ -10,29 +10,38 @@ MOTOR1  MOTOR2
 */
 
 /* Encoder parameters*/
-#define M1EncCh 1  // Quadencoder channel for motor1
-#define M2EncCh 2  // Quadencoder channel for motor2
+#define M1EncCh 1  // Quad encoder channel for motor1
+#define M2EncCh 2  // Quad encoder channel for motor2
 
-#define M1EncPinA 0  // encoder PhaseA Pin  for motor1
-#define M1EncPinB 1  // encoder PhaseB Pin  for motor1
+#define M1EncPinA 1  // encoder PhaseA Pin  for motor1  // Here pins are assigned reversed to that of pcb for the motor direction change
+#define M1EncPinB 0  // encoder PhaseB Pin  for motor1  // Here pins are assigned reversed to that of pcb for the motor direction change
 
-#define M2EncPinA 3  // encoder PhaseA Pin  for motor2
-#define M2EncPinB 2  // encoder PhaseB Pin  for motor2
+#define M2EncPinA 2  // encoder PhaseA Pin  for motor2
+#define M2EncPinB 3  // encoder PhaseB Pin  for motor2
 
 #define Encoder_Resolution 20480  //Encoder count resolution
 
-/* Motorcontroller parameters*/
-#define BAUDRATE 115200
+/* Motor controller parameters*/
+#define BAUDRATE 460800
 
 /* Robot Kinematics */
-#define Wheel_Radius 0.15  // wheel radius in meters
-#define Track_Width 0.525  // distance between left wheel to right wheel
-#define MaxRPM 150         // Max rpm for the wheels
+#define WHEEL_RADIUS 0.15      // wheel radius in meters
+#define TRACK_WIDTH 0.525      // distance between left wheel to right wheel
+#define MAXRPM 150             // Max rpm for the wheels
+#define MAXCONTROLCOMMAND 126  // Max packet value to the roboclaw controller
 
-/* PID gains */
-#define k_p 0
-#define k_d 0
-#define k_i 0
+/* exponential moving average (fist order lowpass filter for PID) */
+
+#define FILTERALPHA 0.95
+/* left motor PID gains */
+#define LEFT_k_p 45.5
+#define LEFT_k_i 371
+#define LEFT_k_d 0
+
+/* right motor PID gains */
+#define RIGHT_k_p 45.5
+#define RIGHT_k_i 371
+#define RIGHT_k_d 0
 
 /*IMU*/
 #define SPI_PORT SPI      // Your desired SPI port.       Used only when "USE_SPI" is defined
@@ -41,7 +50,7 @@ MOTOR1  MOTOR2
 
 /*Calibration data*/
 
-// The offset and matrix are obtained calibtaion code from https://github.com/jremington/ICM_20948-AHRS.git
+// The offset and matrix are obtained calibration code from https://github.com/jremington/ICM_20948-AHRS.git
 
 static const float Gscale = 0.01745329251994;  //scaling factor to change dps to rad/sec
 static const float G_offset[3] = { -0.48901, 0.00945, 0.05528 };

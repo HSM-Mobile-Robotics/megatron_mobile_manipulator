@@ -44,7 +44,8 @@
     } \
   } while (0)
 
-//connection states for microcontroller and micro ros agent on the PC
+
+//connection states for micro controller and micro ros agent on the PC
 enum states {
   WAITING_AGENT,
   AGENT_AVAILABLE,
@@ -62,14 +63,13 @@ rcl_publisher_t vel_publisher;
 rcl_subscription_t cmdvel_subscriber;
 bool micro_ros_init_successful;
 
-geometry_msgs__msg__Twist cmdvel_msg;
-geometry_msgs__msg__Vector3 vel_msg;
+geometry_msgs__msg__Twist cmdvel_msg, vel_msg;
 
 
 //timer variables
 unsigned long long time_offset = 0;
 unsigned long prev_cmd_time = 0;
-const unsigned int timer_timeout = 20;
+const uint64_t timer_timeout = 10;
 
 //Motor driver object
 RoboClaw roboclaw = RoboClaw(&Serial2, 10000);  //PIN 8 TX2 to roboclaw S1 Signal pin and PIN 7 RX2 to roboclaw S2 Signal pin
@@ -81,20 +81,30 @@ QuadEncoder rightEncoder(M2EncCh, M2EncPinA, M2EncPinB, 0);  // Encoder on chann
                                                              // Phase A (pin3), PhaseB(pin2), Pullups Req(0)
 
 //Robot object
-Robot robot(Wheel_Radius, Track_Width, MaxRPM);  // Wheel radius , track width, max rpm
+Robot robot(WHEEL_RADIUS, TRACK_WIDTH, MAXRPM);  // Wheel radius , track width, max rpm
 
 //callback for the timer assiged to publisher
 void timer_callback(rcl_timer_t *timer, int64_t last_call_time) {
-  (void)last_call_time;
-
+  RCLC_UNUSED(last_call_time);
   if (timer != NULL) {
 
     //Move the robot according to the input cmd_vel msg
-    robot.setSpeed(&cmdvel_msg, prev_cmd_time ,&vel_msg);
+    robot.setSpeed(&cmdvel_msg, prev_cmd_time, &vel_msg);
+    /*
+    robot.getRobotVelocity();
 
+    vel_msg.linear.x = robot.velActual.left;
+    vel_msg.linear.y = robot.velActual.right;
+    */
     //publish all the topics
     publishTopics();
   }
+}
+
+void publishTopics() {
+
+  //Updating the time stamps for the publishing msgs
+  rcl_publish(&vel_publisher, &vel_msg, NULL);
 }
 
 // subscriber call back function
@@ -118,16 +128,14 @@ bool create_entities() {
     &cmdvel_subscriber,
     &node,
     ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
-    "cmd_vel"));
+    "/pid_cmd"));
 
   RCCHECK(rclc_publisher_init_best_effort(
     &vel_publisher,
     &node,
-    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Vector3),
-    "/velocity")
-  );
+    ROSIDL_GET_MSG_TYPE_SUPPORT(geometry_msgs, msg, Twist),
+    "/velocity"));
 
-  rclc_publisher_init_best_effort
   // create timer, it controlles the publish rate
   RCCHECK(rclc_timer_init_default(
     &timer,
@@ -164,13 +172,6 @@ void destroy_entities() {
   rclc_support_fini(&support);
 }
 
-void publishTopics() {
-  struct timespec time_stamp = getTime();
-
-  //Updating the time stamps for the publishing msgs
-  rcl_publish(&vel_publisher, &vel_msg, NULL);
-}
-
 void syncTime() {
   // get the current time from the agent
   unsigned long now = millis();
@@ -199,6 +200,8 @@ void setup() {
 
   robot.EncodersInit(&leftEncoder, &rightEncoder, Encoder_Resolution);  //encoder variable address and resolution of the encoders
   robot.motorsInit(&roboclaw, BAUDRATE);                                //roboclaw object address and baudrate
+  robot.M1pid.init(LEFT_k_p, LEFT_k_i, LEFT_k_d,-MAXCONTROLCOMMAND, MAXCONTROLCOMMAND, FILTERALPHA);
+  robot.M2pid.init(RIGHT_k_p, RIGHT_k_i, RIGHT_k_d,-MAXCONTROLCOMMAND, MAXCONTROLCOMMAND, FILTERALPHA);
 }
 
 void loop() {

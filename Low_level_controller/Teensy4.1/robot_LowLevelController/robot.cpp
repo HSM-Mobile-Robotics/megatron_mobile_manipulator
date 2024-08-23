@@ -8,10 +8,10 @@ Robot::Robot(float wheelRadius, float trackWidth, float maxRPM){
     this->wheelRadius = wheelRadius;
     this->trackWidth = trackWidth;
     this->maxRPM = maxRPM;
-    maxVel = (maxRPM*2*PI*wheelRadius)/60;
+    this->maxVel = (maxRPM*2*PI*wheelRadius)/60;
 }
 
-//Roboclaw motor driver intialization
+//Roboclaw motor driver initialization
 void Robot::motorsInit(RoboClaw *roboclaw, long baudrate)
 {
     this->roboclaw = roboclaw;
@@ -19,7 +19,7 @@ void Robot::motorsInit(RoboClaw *roboclaw, long baudrate)
     this->roboclaw->begin(baudrate);
 }
 
-//Encoder intializatin fucntion
+//Encoder initialization function
 void Robot::EncodersInit(QuadEncoder *leftEncoder, QuadEncoder *rightEncoder , float encoderRes){
     this->encoderRes = encoderRes;
     this->leftEncoder = leftEncoder;
@@ -30,14 +30,14 @@ void Robot::EncodersInit(QuadEncoder *leftEncoder, QuadEncoder *rightEncoder , f
     rightEncoder->init();  
 }
 
-//Odometry msg intialization
+//Odometry msg initialization
 void Robot::OdometryInit(nav_msgs__msg__Odometry *odom_msg){
     this->odom_msg = odom_msg;
     odom_msg->header.frame_id = micro_ros_string_utilities_set(odom_msg->header.frame_id, "odom");
     odom_msg->child_frame_id = micro_ros_string_utilities_set(odom_msg->child_frame_id, "base_link");
 }
 
-//Updating actuall velocity from the encoder counts 
+//Updating actual velocity from the encoder counts 
 void Robot::getRobotVelocity(){
 
   unsigned long currentTime = micros();
@@ -53,7 +53,7 @@ void Robot::getRobotVelocity(){
   prevVelTime = currentTime;
 
 
-  if(abs(leftEncCounts)< 50 && abs(leftEncCounts)< 50){
+  if(abs(leftEncCounts)< 25 && abs(leftEncCounts)< 25){
     velActual.left = 0;
     velActual.right = 0;
   }
@@ -80,7 +80,7 @@ void Robot::updateOdometryData(){
   float dx= cos(dTheta)*dv;
   float dy= sin(dTheta)*dv;
 
-  //Calculating the cummulative position change
+  //Calculating the cumulative position change
   xPos += (cos(theta)*dx - sin(theta)*dy);
   yPos += (cos(theta)*dx + sin(theta)*dy);
   theta += dTheta;
@@ -125,64 +125,65 @@ void Robot::moveRobot(geometry_msgs__msg__Twist *cmdvel_msg, unsigned long prev_
     
     getRobotVelocity();
 
-    controlValue.left = pidCalculate(&velReq.left, &velActual.left, &M1param);
-    controlValue.right = pidCalculate(&velReq.right, &velActual.right, &M2param);
+    int controlValueLeft =  M1pid.update(velReq.left, velActual.left, velUpdateTime);
+    int controlValueRight = M2pid.update(velReq.right, velActual.right, velUpdateTime);
   
-    if(controlValue.right >= 0 )
-        roboclaw->ForwardM2(address, controlValue.right);
+    if(controlValueRight >= 0 )
+        roboclaw->ForwardM2(address, controlValueRight);
     else
-        roboclaw->BackwardM2(address, -controlValue.right);
+        roboclaw->BackwardM2(address, -controlValueRight);
     
-    if(controlValue.left >= 0)
-        roboclaw->ForwardM1(address, controlValue.left);
+    if(controlValueLeft >= 0)
+        roboclaw->ForwardM1(address, controlValueLeft);
     else
-        roboclaw->BackwardM1(address, -controlValue.left);
+        roboclaw->BackwardM1(address, -controlValueLeft);
 
     updateOdometryData();
 }
 
 
-//tempfucntion for PID testing
-void Robot::setSpeed(geometry_msgs__msg__Twist *cmdvel_msg, unsigned long prev_cmd_time, geometry_msgs__msg__Vector3 *vel_msg){
+//temp function for PID testing
+void Robot::setSpeed(geometry_msgs__msg__Twist *cmdvelMsg, unsigned long prevCmdTime, geometry_msgs__msg__Twist *velMsg){
     // braking if there's no command received after 200ms
-    if((millis()-prev_cmd_time)>=200){
+    if((millis()-prevCmdTime)>=200){
       velReq.left = 0.0;
       velReq.right = 0.0;
     }
     else{
-      velReq.left = cmdvel_msg->linear.y;
-      velReq.right = cmdvel_msg->linear.x;
+      /*velReq.left =  cmdvelMsg->linear.x;
+      velReq.right = cmdvelMsg->linear.y;   
+
+      */
+      velReq.left = (cmdvelMsg->linear.x - (cmdvelMsg->angular.z*(trackWidth/2)));
+      velReq.right = (cmdvelMsg->linear.x + (cmdvelMsg->angular.z*(trackWidth/2)));
+       
     }
     
     getRobotVelocity();
 
+    /*
     controlValue.left = velReq.left;
     controlValue.right =  velReq.right;
-  
-    if(controlValue.right >= 0 )
-        roboclaw->ForwardM2(address, controlValue.right);
-    else
-        roboclaw->BackwardM2(address, -controlValue.right);
+    */
+    int controlValueLeft =  M1pid.update(velReq.left, velActual.left, velUpdateTime);
+    int controlValueRight = M2pid.update(velReq.right, velActual.right, velUpdateTime);
     
-    if(controlValue.left >= 0)
-        roboclaw->ForwardM1(address, controlValue.left);
+    if(controlValueRight >= 0 )
+       roboclaw->ForwardM2(address, controlValueRight);
     else
-        roboclaw->BackwardM1(address, -controlValue.left);
-        
-    vel_msg->x = velActual.left;
-    vel_msg->y = velActual.right;
-}
+        roboclaw->BackwardM2(address, -controlValueRight);
+    if(controlValueLeft >= 0)
+        roboclaw->ForwardM1(address, controlValueLeft);
+    else
+        roboclaw->BackwardM1(address, -controlValueLeft);
+   
+    velMsg->linear.x = velReq.left;
+    velMsg->linear.y = velActual.left;
+    velMsg->linear.z = controlValueLeft;
+    velMsg->angular.x = velReq.right;
+    velMsg->angular.y = velActual.right;
+    velMsg->angular.z = controlValueRight;
 
-int Robot::pidCalculate(float *velReq , float *velActual, pidTerms *term){
-    float error = *velReq-*velActual;
-    term->errorIntegral = term->errorIntegral + error*(velUpdateTime);
-    term->errorDifferential = (error-term->errorPrev)/(velUpdateTime);
-    float value = (kp*error)+ (ki*(term->errorIntegral))+(kd*(term->errorDifferential));
-    term->errorPrev = error;
-    term->errorIntegral = constrain(term->errorIntegral, -127 , 127);
-    value = constrain(value, -127 , 127);
-
-    return value;
 }
 
 //roll, yaw and pitch are in rad/sec
