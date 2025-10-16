@@ -1,7 +1,10 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-/* ROBOT 
+#include <array>
+
+#include "imu.h"
+/* ROBOT
 
     Front
 MOTOR1  MOTOR2
@@ -9,72 +12,119 @@ MOTOR1  MOTOR2
 
 */
 
+/* Robot Kinematics */
+#define WHEEL_RADIUS 0.15  // wheel radius in meters
+#define TRACK_WIDTH 0.525  // distance between left wheel to right wheel
+#define MAX_RPM 150        // Max rpm for the wheels
+
 /* Encoder parameters*/
-#define M1EncCh 1  // Quad encoder channel for motor1
-#define M2EncCh 2  // Quad encoder channel for motor2
+#define MOTOR1_ENCODER_CHANNEL 1  // Quad encoder channel for motor1
+#define MOTOR2_ENCODER_CHANNEL 2  // Quad encoder channel for motor2
 
-#define M1EncPinA 1  // encoder PhaseA Pin  for motor1  // Here pins are assigned reversed to that of pcb for the motor direction change
-#define M1EncPinB 0  // encoder PhaseB Pin  for motor1  // Here pins are assigned reversed to that of pcb for the motor direction change
+#define MOTOR1_ENCODER_PIN_A \
+    1  // encoder PhaseA Pin  for motor1,
+       // Here pins are assigned reversed to that of pcb for the motor direction change
+#define MOTOR1_ENCODER_PIN_B \
+    0  // encoder PhaseB Pin  for motor1
+       // Here pins are assigned reversed to that of pcb for the motor direction change
 
-#define M2EncPinA 2  // encoder PhaseA Pin  for motor2
-#define M2EncPinB 3  // encoder PhaseB Pin  for motor2
+#define MOTOR2_ENCODER_PIN_A 2  // encoder PhaseA Pin  for motor2
+#define MOTOR2_ENCODER_PIN_B 3  // encoder PhaseB Pin  for motor2
 
-#define Encoder_Resolution 20480  //Encoder count resolution
+#define ENCODER_RESOLUTION 20480  // Encoder resolution
 
 /* Motor controller parameters*/
-#define BAUDRATE 460800
-
-/* Robot Kinematics */
-#define WHEEL_RADIUS 0.15      // wheel radius in meters
-#define TRACK_WIDTH 0.525      // distance between left wheel to right wheel
-#define MAXRPM 150             // Max rpm for the wheels
-#define MAXCONTROLCOMMAND 126  // Max packet value to the roboclaw controller
+#define MOTOR_CONTROLLER_BAUDRATE 460800
+#define MOTOR_CONTROLLER_SERIAL_PORT Serial2
+#define MAX_CONTROL_COMMAND 126  // Max packet value to the roboclaw controller
+// #define MOTOR_CONTROLLER_ADDRESS 0x80
 
 /* exponential moving average (fist order lowpass filter for PID) */
+#define FILTER_ALPHA 0.90
 
-#define FILTERALPHA 0.95
-/* left motor PID gains */
-#define LEFT_k_p 15.61
-#define LEFT_k_i 108.2
-#define LEFT_k_d 0
+/* Motor1 PID gains */
+#define MOTOR1_k_p 15.61
+#define MOTOR1_k_i 108.2
+#define MOTOR1_k_d 0
 
-/* right motor PID gains */
-#define RIGHT_k_p 15.61
-#define RIGHT_k_i 108.2
-#define RIGHT_k_d 0
+/* Motor2 PID gains */
+#define MOTOR2_k_p 15.61
+#define MOTOR2_k_i 108.2
+#define MOTOR2_k_d 0
+
+// covariance for odometry message
+
+static const float POSE_COVARIANCE[6] = {0.0001, 0.0001, 0, 0, 0, 0.0001};
+static const float TWIST_COVARIANCE[6] = {0.00001, 0.00001, 0, 0, 0, 0.00001};
 
 /*IMU*/
 #define SPI_PORT SPI      // Your desired SPI port.       Used only when "USE_SPI" is defined
-#define SPI_FREQ 5000000  // You can override the default SPI frequency
+#define SPI_FREQ 4000000  // You can override the default SPI frequency
 #define CS_PIN 10         // Which pin you connect CS to. Used only when "USE_SPI" is defined
 
 /*Calibration data*/
 
-// The offset and matrix are obtained calibration code from https://github.com/jremington/ICM_20948-AHRS.git
+// The offset and matrix are obtained calibration code from
+// https://github.com/jremington/ICM_20948-AHRS.git
 
-static const float Gscale = 0.01745329251994;  //scaling factor to change dps to rad/sec
-static const float G_offset[3] = { -0.48901, 0.00945, 0.05528 };
+// GYRO
 
+constexpr float GYRO_SCALING_FACTOR = 0.0002664625;  // scaling factor to change dps to rad/sec
+constexpr float GYRO_OFFSET[3] = {-51.5, -7.9, 5.1};
 
-static const float Ascale = 0.0098;  //scaling factor to change mg to m/sec²
+// Accel
 
-// Accel scale
-const float A_B[3] = { 29.72, -51.85, 69.96 };
-
-static const float A_Ainv[3][3] = {
-  { 0.96512, 0.03608, 0.01154 },
-  { 0.03608, 0.91931, -0.00324 },
-  { 0.01154, -0.00324, 1.03336 }
-};
-
-static const float Mscale = 0.001;
+constexpr float ACCEL_SCALING_FACTOR = 0.00059855;  // scaling factor to change mg to m/sec²
+constexpr float ACCEL_BIAS[3] = {39.41, -415.64, 408.7};  // Acceleration combined bias vector
+// A is the matrix combining scale factors, misalignments and soft-iron effects, inverted for
+// calibrated value calculation equation
+constexpr float ACCEL_A_MATRIX_INVERSE[3][3] = {
+{ 0.0609 , 0.00016 , -2e-05 },
+{ 0.00016 , 0.06125 , 0.00241 },
+{ -2e-05 , 0.00241 , 0.06117 }};
 
 // Mag scale
-static const float M_B[3] = { -19, 19.04, -5.58 };
+constexpr float MAG_SCALING_FACTOR = 0.001;
+constexpr float MAG_BIAS[3] = {-106.38, 393.59, -172.43};  // mag combined bias vector
 
-static const float M_Ainv[3][3] = {
-  { 32.80822, 0.64192, 0.9839 },
-  { 0.64192, 33.34404, -1.40326 },
-  { 0.9839, -1.40326, 33.56121 }
-};
+// A is the matrix combining scale factors, misalignments and soft-iron effects, inverted for
+// calibrated value calculation equation
+constexpr float MAG_A_MATRIX_INVERSE[3][3] = {{2.16182, 0.15981, -0.62735},
+                {0.15981, 2.31317, 0.05849}, {
+    -0.62735, 0.05849, 2.35421}};
+// covariance for IMU message
+
+constexpr float LINEAR_ACCEL_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
+constexpr float ANGULAR_VEL_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
+constexpr float ORIENTATION_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
+constexpr float MAGNETIC_FIELD_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
+
+constexpr ImuCalibration IMU_CALIB = {GYRO_SCALING_FACTOR,
+                                      GYRO_OFFSET,
+                                      ACCEL_SCALING_FACTOR,
+                                      ACCEL_BIAS,
+                                      ACCEL_A_MATRIX_INVERSE,
+                                      MAG_SCALING_FACTOR,
+                                      MAG_BIAS,
+                                      MAG_A_MATRIX_INVERSE,
+                                      LINEAR_ACCEL_COVARIANCE,
+                                      ANGULAR_VEL_COVARIANCE,
+                                      ORIENTATION_COVARIANCE,
+                                      MAGNETIC_FIELD_COVARIANCE};
+
+// ROS TOPIC LIST AND CONFIGS
+
+#define NODE_NAME "ulrich_robot_node"
+#define CMD_VEL_TOPIC "/cmd_vel"
+#define ODOM_TOPIC "/odom"
+#define IMU_TOPIC "/imu/data_raw"
+#define MAG_TOPIC "/imu/mag"
+
+#define BASE_FRAME "base_link"
+#define ODOM_FRAME "odom"
+#define IMU_FRAME "imu_link"
+#define MAG_FRAME "mag_link"
+
+#define PUBLISH_RATE 10  //
+
 #endif

@@ -1,6 +1,5 @@
 #include "PID.h"
 
-
 void PID::init(float kp, float ki, float kd, int minlimit, int maxlimit, float filterAlpha) {
   this->kp = kp;
   this->ki = ki;
@@ -11,7 +10,7 @@ void PID::init(float kp, float ki, float kd, int minlimit, int maxlimit, float f
   this->filterAlpha = filterAlpha;
 }
 
-int PID::update(float velReq, float velActual, float dt , bool coastflag) {
+int PID::update(float velReq, float velActual, float dt , bool coastFlag) {
   unsigned long currentTime = micros();
 
   // if  motor stops to respond when a PID input is given conditions like stall, emergency stop and power loss
@@ -35,7 +34,7 @@ int PID::update(float velReq, float velActual, float dt , bool coastflag) {
   float value = (kp * error) + (ki * (errorIntegral)) + (kd * (errorDifferential));
   errorPrev = error;
   errorIntegral = constrain(errorIntegral, minlimit, maxlimit);
-  if (coastflag == 1){
+  if (coastFlag == 1){
       errorIntegral = 0;
       errorDifferential = 0;
       return 0;

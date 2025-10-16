@@ -3,13 +3,6 @@
 
 #include <Arduino.h>
 
-typedef struct
-{
-  double errorIntegral = 0.0,
-         errorDifferential = 0.0,
-         errorPrev = 0.0;
-} pidTerms;
-
 class PID {
 private:
   float kp = 0.0,
@@ -21,11 +14,11 @@ private:
   int maxlimit = 0, minlimit = 0;
   float velResponseLimit = 0.0, filterAlpha = 1.0 , filterPrevValue = 0.0 ;
   unsigned long noResponseTime;
-  bool coastflag = 0;
+  bool coastFlag = 0;
 
 public:
   void init(float kp, float ki, float kd, int minlimit, int maxlimit, float filterAlpha);
-  int update(float velReq, float velActual, float dt, bool coastflag);
+  int update(float velReq, float velActual, float dt, bool coastFlag);
 };
 
 #endif
