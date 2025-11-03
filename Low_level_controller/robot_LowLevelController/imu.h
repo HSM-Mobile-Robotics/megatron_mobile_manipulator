@@ -8,20 +8,16 @@
 #include "ICM_20948.h"  // Click here to get the library: http://librarymanager/All#SparkFun_ICM_20948_IMU
 
 // IMU calibration structure
-typedef struct {
+typedef struct  {
     const float gyro_scaling_factor;
     const float* gyro_offset;
     const float accel_scaling_factor;
     const float* accel_bias;
     const float (*accel_a_matrix_inverse)[3];
-    const float mag_scaling_factor;
-    const float* mag_bias;
-    const float (*mag_a_matrix_inverse)[3];
     const float* linear_accel_covariance;
     const float* angular_vel_covariance;
     const float* orientation_covariance;
-    const float* magnetic_field_covariance;
-}ImuCalibration ;
+}ImuCalibration;
 
 class IMU {
    private:
@@ -30,9 +26,8 @@ class IMU {
     const ImuCalibration* calibration; 
    
    public:
-    
-
-    IMU(uint8_t csPin, SPIClass &spiPort, uint32_t spiFreq, const ImuCalibration* calib);
+    IMU(const ImuCalibration* calib);
+    void imuInit(uint8_t csPin, SPIClass &spiPort, uint32_t spiFreq);
     void updateData(sensor_msgs__msg__Imu* imu_msg);
 };
 

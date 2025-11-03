@@ -1,6 +1,7 @@
 #include "imu.h"
 
-IMU::IMU(uint8_t csPin, SPIClass& spiPort, uint32_t spiFreq, const ImuCalibration* calib) : calibration(calib) {
+IMU::IMU(const ImuCalibration* calib) : calibration(calib) {}
+void IMU::imuInit(uint8_t csPin, SPIClass& spiPort, uint32_t spiFreq){
     spiPort.begin();
     myICM.begin(csPin, spiPort, spiFreq);
 

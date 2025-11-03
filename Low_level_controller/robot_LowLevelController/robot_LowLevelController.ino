@@ -13,7 +13,6 @@
 #include <geometry_msgs/msg/twist.h>
 #include <nav_msgs/msg/odometry.h>
 #include <sensor_msgs/msg/imu.h>
-#include <sensor_msgs/msg/magnetic_field.h>
 
 // custom headers
 #include "config.h"
@@ -51,7 +50,7 @@ rclc_support_t support;
 rcl_allocator_t allocator;
 
 // Objects for publisher and subscriber
-rcl_publisher_t odom_publisher, imu_publisher, mag_publisher;
+rcl_publisher_t odom_publisher, imu_publisher;
 rcl_subscription_t cmd_vel_subscriber;
 bool micro_ros_init_successful;
 
@@ -59,14 +58,13 @@ bool micro_ros_init_successful;
 geometry_msgs__msg__Twist cmd_vel_msg;
 nav_msgs__msg__Odometry odom_msg;
 sensor_msgs__msg__Imu imu_msg;
-sensor_msgs__msg__MagneticField mag_msg;
 
 // timer variables
 unsigned long long time_offset = 0;
 unsigned long prev_cmd_time = 0;
 
 // Robot object
-Robot robot(&odom_msg, &imu_msg, &mag_msg);
+Robot robot(&odom_msg, &imu_msg);
 
 
 // callback for the timer assigned to publisher
@@ -91,16 +89,11 @@ void publishTopics() {
     imu_msg.header.stamp.sec = time_stamp.tv_sec;
     imu_msg.header.stamp.nanosec = time_stamp.tv_nsec;
 
-    mag_msg.header.stamp.sec = time_stamp.tv_sec;
-    mag_msg.header.stamp.nanosec = time_stamp.tv_nsec;
-
     robot.imuICM.updateData(&imu_msg);
 
     rcl_publish(&odom_publisher, &odom_msg, NULL);
 
-
     rcl_publish(&imu_publisher, &imu_msg, NULL);
-    rcl_publish(&mag_publisher, &mag_msg, NULL);
 
 }
 
@@ -128,11 +121,6 @@ bool create_entities() {
 
     RCCHECK(rclc_publisher_init_default(
         &imu_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, Imu), IMU_TOPIC));
-
-    RCCHECK(rclc_publisher_init_default(
-        &mag_publisher, &node, ROSIDL_GET_MSG_TYPE_SUPPORT(sensor_msgs, msg, MagneticField),
-        MAG_TOPIC));
-
 
     // create timer, it controls the publish rate
     RCCHECK(rclc_timer_init_default(&timer, &support, RCL_MS_TO_NS(10), timer_callback));
@@ -162,9 +150,7 @@ void destroy_entities() {
 
     rcl_subscription_fini(&cmd_vel_subscriber, &node);
     rcl_publisher_fini(&odom_publisher, &node);
-
     rcl_publisher_fini(&imu_publisher, &node);
-    rcl_publisher_fini(&mag_publisher, &node);
 
     rcl_timer_fini(&timer);
     rclc_executor_fini(&executor);
@@ -195,8 +181,9 @@ struct timespec getTime() {
 void setup() {
     set_microros_transports();
     pinMode(LED_PIN, OUTPUT);
-
     state = WAITING_AGENT;
+
+    robot.imuICM.imuInit(CS_PIN, SPI_PORT, SPI_FREQ);
 }
 
 void loop() {

@@ -70,60 +70,35 @@ static const float TWIST_COVARIANCE[6] = {0.00001, 0.00001, 0, 0, 0, 0.00001};
 // GYRO
 
 constexpr float GYRO_SCALING_FACTOR = 0.0002664625;  // scaling factor to change dps to rad/sec
-constexpr float GYRO_OFFSET[3] = {-51.5, -7.9, 5.1};
+constexpr float GYRO_OFFSET[3] = {-41.7, -9.5, -5.6};
 
 // Accel
 
 constexpr float ACCEL_SCALING_FACTOR = 0.00059855;  // scaling factor to change mg to m/sec²
-constexpr float ACCEL_BIAS[3] = {39.41, -415.64, 408.7};  // Acceleration combined bias vector
+constexpr float ACCEL_BIAS[3] = {228.48, -243.43, -683.36};  // Acceleration combined bias vector
 // A is the matrix combining scale factors, misalignments and soft-iron effects, inverted for
 // calibrated value calculation equation
 constexpr float ACCEL_A_MATRIX_INVERSE[3][3] = {
-{ 0.0609 , 0.00016 , -2e-05 },
-{ 0.00016 , 0.06125 , 0.00241 },
-{ -2e-05 , 0.00241 , 0.06117 }};
+{ 0.05725 , 0.00065 , 0.00246 },
+{ 0.00065 , 0.05754 , -0.0009 },
+{ 0.00246 , -0.0009 , 0.06109 }};
 
-// Mag scale
-constexpr float MAG_SCALING_FACTOR = 0.001;
-constexpr float MAG_BIAS[3] = {-106.38, 393.59, -172.43};  // mag combined bias vector
-
-// A is the matrix combining scale factors, misalignments and soft-iron effects, inverted for
-// calibrated value calculation equation
-constexpr float MAG_A_MATRIX_INVERSE[3][3] = {{2.16182, 0.15981, -0.62735},
-                {0.15981, 2.31317, 0.05849}, {
-    -0.62735, 0.05849, 2.35421}};
 // covariance for IMU message
 
 constexpr float LINEAR_ACCEL_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
 constexpr float ANGULAR_VEL_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
 constexpr float ORIENTATION_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
-constexpr float MAGNETIC_FIELD_COVARIANCE[3] = {0.00001, 0.00001, 0.00001};
-
-constexpr ImuCalibration IMU_CALIB = {GYRO_SCALING_FACTOR,
-                                      GYRO_OFFSET,
-                                      ACCEL_SCALING_FACTOR,
-                                      ACCEL_BIAS,
-                                      ACCEL_A_MATRIX_INVERSE,
-                                      MAG_SCALING_FACTOR,
-                                      MAG_BIAS,
-                                      MAG_A_MATRIX_INVERSE,
-                                      LINEAR_ACCEL_COVARIANCE,
-                                      ANGULAR_VEL_COVARIANCE,
-                                      ORIENTATION_COVARIANCE,
-                                      MAGNETIC_FIELD_COVARIANCE};
 
 // ROS TOPIC LIST AND CONFIGS
 
 #define NODE_NAME "ulrich_robot_node"
 #define CMD_VEL_TOPIC "/cmd_vel"
-#define ODOM_TOPIC "/odom"
+#define ODOM_TOPIC "/odom/unfiltered"
 #define IMU_TOPIC "/imu/data_raw"
-#define MAG_TOPIC "/imu/mag"
 
 #define BASE_FRAME "base_link"
 #define ODOM_FRAME "odom"
 #define IMU_FRAME "imu_link"
-#define MAG_FRAME "mag_link"
 
 #define PUBLISH_RATE 10  //
 

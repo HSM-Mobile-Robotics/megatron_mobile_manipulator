@@ -6,9 +6,19 @@ const float Robot::trackWidth = TRACK_WIDTH;
 const float Robot::maxRPM = MAX_RPM;
 const float Robot::maxVel = (2 * 3.141592653 * Robot::wheelRadius * Robot::maxRPM) / 60.0;
 
-Robot::Robot(nav_msgs__msg__Odometry *odom_msg, sensor_msgs__msg__Imu *imu_msg, sensor_msgs__msg__MagneticField* mag_msg)
+constexpr ImuCalibration IMU_CALIB = {GYRO_SCALING_FACTOR,
+                                      GYRO_OFFSET,
+                                      ACCEL_SCALING_FACTOR,
+                                      ACCEL_BIAS,
+                                      ACCEL_A_MATRIX_INVERSE,
+                                      LINEAR_ACCEL_COVARIANCE,
+                                      ANGULAR_VEL_COVARIANCE,
+                                      ORIENTATION_COVARIANCE};
+
+
+Robot::Robot(nav_msgs__msg__Odometry *odom_msg, sensor_msgs__msg__Imu *imu_msg)
     : roboclaw(&MOTOR_CONTROLLER_SERIAL_PORT, 10000),
-      imuICM(CS_PIN, SPI_PORT, SPI_FREQ,&IMU_CALIB),
+      imuICM(&IMU_CALIB),
       motor1Left(MOTOR1_ENCODER_CHANNEL, MOTOR1_ENCODER_PIN_A, MOTOR1_ENCODER_PIN_B, 0,
                  ENCODER_RESOLUTION),
       motor2Right(MOTOR2_ENCODER_CHANNEL, MOTOR2_ENCODER_PIN_A, MOTOR2_ENCODER_PIN_B, 0,
@@ -27,7 +37,6 @@ Robot::Robot(nav_msgs__msg__Odometry *odom_msg, sensor_msgs__msg__Imu *imu_msg, 
         micro_ros_string_utilities_set(odom_msg->header.frame_id, ODOM_FRAME);
     odom_msg->child_frame_id = micro_ros_string_utilities_set(odom_msg->child_frame_id, BASE_FRAME);
     imu_msg->header.frame_id = micro_ros_string_utilities_set(imu_msg->header.frame_id, IMU_FRAME);
-    mag_msg->header.frame_id = micro_ros_string_utilities_set(mag_msg->header.frame_id, MAG_FRAME);
 }
 
 // Updating actual velocity from the encoder counts
@@ -58,21 +67,18 @@ void Robot::updateOdometryData(nav_msgs__msg__Odometry *odom_msg) {
     prevOdomTime = currentTime;
 
     // calculating the change in linear velocity and angular velocity
-    float dv = ((motor2Right.velActual + motor1Left.velActual) * (updateTime)) / 2;
-    float dTheta = ((motor2Right.velActual - motor1Left.velActual) * (updateTime)) / trackWidth;
+    float v = (motor2Right.velActual + motor1Left.velActual) / 2.0;
+    float w = (motor2Right.velActual - motor1Left.velActual) / trackWidth;
 
-    // Calculating the change in postion in x and y coordinates
-    float dx = cos(dTheta) * dv;
-    float dy = sin(dTheta) * dv;
-
-    // Calculating the cumulative position change
-    xPos += (cos(theta) * dx - sin(theta) * dy);
-    yPos += (cos(theta) * dx + sin(theta) * dy);
-    theta += dTheta;
+    theta += w*(updateTime);
 
     // Reseting the angle after a complete rotation
     if (theta >= TWO_PI) theta -= TWO_PI;
     if (theta <= -TWO_PI) theta += TWO_PI;
+
+    // Calculating the cumulative position change
+    xPos += v*cos(theta)*(updateTime);
+    yPos += v*sin(theta)*(updateTime);
 
     // changing the euler data to quaternion
     double q[4];

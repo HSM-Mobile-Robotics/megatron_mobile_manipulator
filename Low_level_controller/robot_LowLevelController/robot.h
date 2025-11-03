@@ -54,7 +54,7 @@ class Robot {
     Motor motor1Left, motor2Right;
 
    public:
-    Robot(nav_msgs__msg__Odometry *odom_msg, sensor_msgs__msg__Imu* imu_msg, sensor_msgs__msg__MagneticField* mag_msg);
+    Robot(nav_msgs__msg__Odometry *odom_msg, sensor_msgs__msg__Imu* imu_msg);
  
     void moveRobot(geometry_msgs__msg__Twist *cmdvel_msg, unsigned long prev_cmd_time, nav_msgs__msg__Odometry *odom_msg);
     void updateOdometryData(nav_msgs__msg__Odometry *odom_msg);
