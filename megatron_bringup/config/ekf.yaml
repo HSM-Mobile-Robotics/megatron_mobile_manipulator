@@ -16,11 +16,11 @@ ekf_filter_node:
 
         odom0: /odom/unfiltered
 
-        odom0_config: [false, false, false, # x, y, z
-                       false, false, false, # roll, pitch, yaw
-                       true,  false,  false, # vx, vy, vz
-                       false, false, false, # vroll, vpitch, vyaw
-                       false, false, false] # ax, ay, az
+        odom0_config: [false, false, false,     # x, y, z
+                       false, false, false,     # roll, pitch, yaw
+                       true,  false,  false,    # vx, vy, vz
+                       false, false, false,     # vroll, vpitch, vyaw
+                       false, false, false]     # ax, ay, az
 
         odom0_queue_size: 10
         odom0_differential: false
@@ -28,10 +28,10 @@ ekf_filter_node:
 
         imu0: /imu/data
         imu0_config: [false, false, false,      # x, y, z
-                      false, false, true,         # roll, pitch, yaw
+                      false, false, true,       # roll, pitch, yaw
                       false, false, false,      # vx, vy, vz
                       false, false,  true,      # vroll, vpitch, vyaw
-                      false, false, false]    # ax, ay, az
+                      false, false, false]      # ax, ay, az
         imu0_differential: false
         imu0_relative: true
         imu0_queue_size: 10

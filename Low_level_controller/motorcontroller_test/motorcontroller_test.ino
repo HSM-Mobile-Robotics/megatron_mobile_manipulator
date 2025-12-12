@@ -1,3 +1,12 @@
+/* 
+
+MIT License
+Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+
+Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
+
+*/
+
 //See BareMinimum example for a list of library functions
 
 //Includes required to use Roboclaw library

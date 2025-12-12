@@ -1,0 +1,12 @@
+# MIT License
+# Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+#
+# Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
+
+step_cmd_publisher_node:
+  ros__parameters:
+    step_value_linear_x : 0.5
+    step_value_angular_z : 6.0
+
+#    step_value_linear_x : 70.0 # for roboclaw
+#    step_value_angular_z : 0.0

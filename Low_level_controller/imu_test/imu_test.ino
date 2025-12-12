@@ -1,3 +1,12 @@
+/* 
+
+MIT License
+Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+
+Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
+
+*/
+
 /****************************************************************
  * Example1_Basics.ino
  * ICM 20948 Arduino Library Demo

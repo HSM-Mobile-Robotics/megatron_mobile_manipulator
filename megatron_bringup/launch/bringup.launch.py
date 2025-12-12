@@ -1,3 +1,8 @@
+# MIT License
+# Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+#
+# Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
@@ -9,7 +14,8 @@ from launch.conditions import IfCondition, LaunchConfigurationEquals, LaunchConf
 
 def generate_launch_description():
     basic_robot_launch_path = PathJoinSubstitution(
-        [FindPackageShare('megatron_bringup'), 'launch', 'basic_robot.launch.py']
+        [FindPackageShare('megatron_bringup'), 'launch',
+         'basic_robot.launch.py']
     )
 
     ekf_config_path = PathJoinSubstitution(
@@ -17,18 +23,19 @@ def generate_launch_description():
     )
 
     imu_config_path = PathJoinSubstitution(
-        [FindPackageShare('megatron_bringup'), 'config', 'imu_madgwick_filter.yaml']
+        [FindPackageShare('megatron_bringup'), 'config',
+         'imu_madgwick_filter.yaml']
     )
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            name='micro_ros_serial_port', 
+            name='micro_ros_serial_port',
             default_value='/dev/ttyACM0',
             description='Megatron teensy Serial Port'
         ),
 
         DeclareLaunchArgument(
-            name='micro_ros_baudrate', 
+            name='micro_ros_baudrate',
             default_value='460800',
             description='micro-ROS baudrate'
         ),
@@ -40,7 +47,7 @@ def generate_launch_description():
         ),
 
         DeclareLaunchArgument(
-            name='odom_topic', 
+            name='odom_topic',
             default_value='/odom',
             description='EKF out odometry topic'
         ),
@@ -56,7 +63,8 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='imu_link',
-            arguments=['0.254', '0', '0', '0', '0', '0', 'base_link', 'imu_link']
+            arguments=['0.254', '0', '0', '0',
+                       '0', '0', 'base_link', 'imu_link']
         ),
 
         Node(
