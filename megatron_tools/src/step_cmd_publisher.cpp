@@ -1,5 +1,4 @@
-// MIT License
-// Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+// MIT License Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
 //
 // Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
 
@@ -23,7 +22,8 @@ public:
         // Creating publisher object to handel the publishing operations
         publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/step_cmd", 10);
 
-        // timer object to define the publishing rate, and the timer_callback function is bind to the timer
+        // timer object to define the publishing rate, and the timer_callback
+        // function is bind to the timer
         timer_ = this->create_wall_timer(10ms, std::bind(&MPCStepCmdPublisher::timer_callback, this));
 
         this->declare_parameter<double>("step_value_linear_x", 10);

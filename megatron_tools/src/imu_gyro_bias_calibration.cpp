@@ -1,5 +1,4 @@
-// MIT License
-// Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
+// MIT License Copyright (c) 2025 Hochschule Schmalkalden Robotics Lab
 //
 // Authors: Venkata Prashanth Uppalapati <venkataprashanth.u@gmail.com>
 
@@ -23,8 +22,10 @@ public:
       publisher_ouster_ = this->create_publisher<std_msgs::msg::Float64>("calDegree_ouster", 10);
       publisher_icm_ = this->create_publisher<std_msgs::msg::Float64>("calDegree_icm", 10);
 
-      subscription_ouster_ = this->create_subscription<sensor_msgs::msg::Imu>("ouster/imu", 10, std::bind(&IMUGyroBiasCalibration::ouster_topic_callback, this ,_1));
-      subscription_icm_ = this->create_subscription<sensor_msgs::msg::Imu>("/imu/data_raw", 10, std::bind(&IMUGyroBiasCalibration::icm_topic_callback, this, _1));
+      subscription_ouster_ = this->create_subscription<sensor_msgs::msg::Imu>("ouster/imu", 10,
+                                std::bind(&IMUGyroBiasCalibration::ouster_topic_callback, this ,_1));
+      subscription_icm_ = this->create_subscription<sensor_msgs::msg::Imu>("/imu/data_raw", 10,
+                                std::bind(&IMUGyroBiasCalibration::icm_topic_callback, this, _1));
 
     }
 
